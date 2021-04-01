@@ -181,6 +181,32 @@ class AbstractModule
         return $this->isExtensionEnabled('keysys');
     }
 
+    public function isPriceExtensionEnabled() : bool
+    {
+        return $this->isExtensionEnabled('price');
+    }
+
+    public function isChargeExtensionEnabled() : bool
+    {
+        return $this->isExtensionEnabled('charge');
+    }
+
+    public function isFeeExtensionEnabled() : bool
+    {
+        if ($this->isPriceExtensionEnabled()) {
+            return false;
+        }
+
+        $extensions = $this->getExtensionEnabled();
+        foreach ($extensions as $name => $data) {
+            if (strpos($name, 'fee') === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Check is Extension enabled
      *
@@ -189,9 +215,20 @@ class AbstractModule
      */
     public function isExtensionEnabled(string $extension) : bool
     {
-        $extensions = $this->tool->getExtensions();
-
+        $extensions = $this->getExtensionEnabled();
         return !empty($extensions[$extension]);
     }
 
+    public function getExtensionEnabled(): ?array
+    {
+        static $extensions;
+
+        if ($extensions === null) {
+            $extensions = $this->tool->getExtensions();
+        }
+
+        $extensions = $extensions ?? [];
+
+        return $extensions;
+    }
 }

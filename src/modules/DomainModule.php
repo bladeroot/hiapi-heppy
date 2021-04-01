@@ -674,23 +674,28 @@ class DomainModule extends AbstractModule
     protected function domainCheck(string $domain) : array
     {
         $res = $this->_domainCheck($domain, true);
-        if ((int) $res['avails'][$domain] === 0) {
+        if ((int) $res['avails'][$domain] === 0 || !$this->isFeeExtensionsEnabled()) {
             return [
                 'avail' => (int) $res['avails'][$domain],
                 'reason' => $res['reasons'][$domain] ?? null,
             ];
         }
 
-        $checkPremium = $this->_domainCheck($domain);
-        if (!empty($checkPremium['price'])) {
-            return $this->_parseCheckPrice($domain, $res, $checkPremium);
+        if ($this->isChargeExtensionEnabled()) {
+            return $this->_parseCheckCharge($domain, 'create', $res);
         }
 
-        return $this->_parseCheckFee($domain, $res, $checkPremium);
+        if ($this->isPriceExtensionEnabled()) {
+            return $this->_parseCheckPrice($domain, 'create', $res);
+        }
+
+        return $this->_parseCheckFee($domain, 'create', $res);
     }
 
-    protected function _parseCheckFee(string $domain, array $data, array $res) : array
+    protected function _parseCheckFee(string $domain, string $action = 'create', array $res = []) : array
     {
+        $data = $this->$this->_domainCheck($domain, false, $action);
+
         if (empty($res['fee']) || empty($res['fee'][$domain]) || empty($res['fee'][$domain]['class'])) {
             return [
                 'avail' => (int) $data['avails'][$domain],
@@ -712,8 +717,9 @@ class DomainModule extends AbstractModule
         ];
     }
 
-    protected function _parseCheckPrice(string $domain, array $data, array $res) : array
+    protected function _parseCheckPrice(string $domain, string $action = 'crate', array $res = []) : array
     {
+        $data = $this->_domainCheck($domain, false, $action);
         $priceD = [];
         foreach ($res['price'][$domain] as $key => $value) {
             $key = str_replace('Price', '', $key);
@@ -728,6 +734,23 @@ class DomainModule extends AbstractModule
             'reason' => 'PREMIUM DOMAIN',
             'fee' => $res['fee'][$domain],
         ];
+    }
+
+    protected function _parseCheckCharge(string $domain, string $action = 'crate', array $res = []) : array
+    {
+        return array_filter([
+            'avail' => (int) $res['avails'][$domain],
+            'reason' => $res['category'] === 'premium' ? 'PREMIUM DOMAIN' : ($res['reasons'][$domain] ?? null),
+            'fee' => array_filter([
+                'category_name' => $res['category_name'] ?? null,
+                'category' => $res['category'] ?? null,
+                'create' => $res['create'] ?? null,
+                'renew' => $res['renew'] ?? null,
+                'transfer' => $res['transfer'] ?? null,
+                'update' => $res['update'] ?? null,
+                'restore' => $res['restore'] ?? null,
+            ]),
+        ]);
     }
 
     protected function _domainCheck(string $domain, $withoutExt = false, string $action = 'create') : array
@@ -769,5 +792,12 @@ class DomainModule extends AbstractModule
         }
 
         return $row;
+    }
+
+    public function isFeeExtensionsEnabled(): bool
+    {
+        return $this->isPriceExtensionEnabled()
+            || $this->isChargeExtensionEnabled()
+            || $this->isFeeExtensionEnabled();
     }
 }

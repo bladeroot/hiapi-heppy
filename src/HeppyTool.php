@@ -20,6 +20,7 @@ use hiapi\heppy\extensions\SecDNSExtension;
 use hiapi\heppy\extensions\IDNLangExtension;
 use hiapi\heppy\extensions\PriceExtension;
 use hiapi\heppy\extensions\KeySysExtension;
+use hiapi\heppy\extensions\ChargeExtension;
 use hiapi\heppy\modules\AbstractModule;
 use hiapi\heppy\modules\ContactModule;
 use hiapi\heppy\modules\DomainModule;
@@ -28,6 +29,7 @@ use hiapi\heppy\modules\HostModule;
 use hiapi\heppy\modules\PollModule;
 use hiapi\heppy\modules\EPPModule;
 use hiapi\heppy\modules\BalanceModule;
+use hiapi\heppy\modules\FinanceModule;
 
 /**
  * hEPPy tool.
@@ -68,6 +70,7 @@ class HeppyTool
         'neulevel' => 'urn:ietf:params:xml:ns:neulevel',
         'neulevel10' => ['urn:ietf:params:xml:ns:neulevel-1.0', 'version' => '10'],
         'keysys' => 'http://www.key-systems.net/epp/keysys-1.0',
+        'charge' => 'http://www.unitedtld.com/epp/charge-1.0',
     ];
 
     /**
@@ -89,6 +92,7 @@ class HeppyTool
         'idnLang' => IDNLangExtension::class,
         'price' => PriceExtension::class,
         'keysys' => KeySysExtension::class,
+        'charge' => ChargeExtension::class,
     ];
 
     protected $modules = [
@@ -104,6 +108,7 @@ class HeppyTool
         'polls'     => PollModule::class,
         'epp'       => EPPModule::class,
         'balance'   => BalanceModule::class,
+        'finance'   => FinanceModule::class,
     ];
 
     /**
